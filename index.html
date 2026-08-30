@@ -231,10 +231,11 @@
 <header class="signboard">
   <h1>🌾 Caixa da Fazenda</h1>
   <div class="row" style="gap:10px;">
-    <div class="sync-pill" id="syncPill" onclick="openSettings()">
+    <div class="sync-pill" id="syncPill" onclick="quickSync()">
       <span class="dot" id="syncDot"></span>
       <span id="syncLabel">Somente local</span>
     </div>
+    <button class="sync-pill" onclick="openSettings()" title="Configurações de sincronização" style="padding:6px 10px;">⚙️</button>
   </div>
 </header>
 
@@ -864,6 +865,29 @@ function refreshSyncPillIdle(){
     updateSyncPill('', 'Somente local — configurar');
   }
 }
+
+// Clique no "pill" do topo: se já estiver configurado, busca as novidades da nuvem na hora.
+// Se ainda não estiver configurado, abre a tela de configurações.
+function quickSync(){
+  if(cfg.owner && cfg.repo && cfg.token){
+    pullFromGitHub(false).then(()=> renderAll());
+  } else {
+    openSettings();
+  }
+}
+
+// Sempre que o app voltar a ficar visível (trocou de aba/app e voltou, ligou a tela do
+// celular de novo, etc.) busca automaticamente as novidades da nuvem, sem precisar clicar em nada.
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible' && cfg.owner && cfg.repo && cfg.token && !autoSyncTimer){
+    pullFromGitHub(true).then(()=> renderAll());
+  }
+});
+window.addEventListener('pageshow', ()=>{
+  if(cfg.owner && cfg.repo && cfg.token && !autoSyncTimer){
+    pullFromGitHub(true).then(()=> renderAll());
+  }
+});
 
 async function pullFromGitHub(silent){
   if(!cfg.owner||!cfg.repo||!cfg.token){ if(!silent) alert('Configure o GitHub primeiro.'); return; }
