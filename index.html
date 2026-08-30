@@ -960,7 +960,11 @@ function saveSettings(e){
   localStorage.setItem(LS_CFG, JSON.stringify(cfg));
   closeModal();
   refreshSyncPillIdle();
-  pushToGitHub();
+  // Sempre busca primeiro o que já existe na nuvem (evita sobrescrever dados de outro aparelho
+  // e evita o erro "sha wasn't supplied" ao tentar salvar sem saber a versão atual do arquivo).
+  pullFromGitHub(true).then(()=>{
+    renderAll();
+  });
   return false;
 }
 function doPull(){ pullFromGitHub(false); }
